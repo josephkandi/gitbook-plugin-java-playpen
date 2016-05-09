@@ -12,7 +12,7 @@ var newLineRegex = /(?:\r\n|\r|\n)/g;
 var successColor  = "#4caf50";
 var errorColor    = "#e51c23";
 var noOutputColor = "#ff9800";
-
+var panelResultDiv = document.querySelector("#panel-result");
 // Error message to return when there's a server failure
 var errMsg = "The server encountered an error while running the program.";
 
@@ -36,7 +36,7 @@ function init(){
     return;
 
   for (var i = 0; i < blocks.length; i++) {
-    initEditor(blocks[i])
+    initEditor(blocks[i]);
   }
 }
 
@@ -45,6 +45,7 @@ function initEditor(block) {
   var resetButton = block.querySelector(".reset-code");
   var runButton   = block.querySelector(".run-code");
   var resultDiv   = block.querySelector(".result");
+  var panelResultDiv = block.querySelector("#panel-result");    
 
   if (editorDiv == null) {
     return;
@@ -59,7 +60,8 @@ function initEditor(block) {
   var executeCode = function(ev) {
     resultDiv.style.display = "block";
     resultDiv.innerHTML = "Running...";
-	resultDiv.className = "alert alert-dismissible alert-info";
+    panelResultDiv.style.display = "block";
+	panelResultDiv.className = "alert alert-dismissible alert-info";
 
     // Clear previous markers, if any
     markers.map(function(id) { editor.getSession().removeMarker(id); });
@@ -70,17 +72,18 @@ function initEditor(block) {
   };
 
   ace.config.setModuleUrl('ace/mode/java', '/gitbook/plugins/gitbook-plugin-java-playpen/mode-java.js');
-
+  
   editor.setOptions({
       enableBasicAutocompletion: true,
       enableSnippets: true,
+      fontSize: "10pt",
       enableLiveAutocompletion: true
   });
 
   editor.setTheme("ace/theme/tomorrow");
   editor.getSession().setMode("ace/mode/java");
-  editor.setShowPrintMargin(false);
-  editor.renderer.setShowGutter(false);
+  editor.setShowPrintMargin(true);
+  editor.renderer.setShowGutter(true);
   editor.setHighlightActiveLine(false);
   editor.commands.addCommand({
       name: "run",
@@ -105,8 +108,9 @@ function initEditor(block) {
     markers.map(function(id) { editor.getSession().removeMarker(id); });
 
     editor.getSession().setValue(originalCode);
-    resultDiv.style.display = "none";
-	resultDiv.className = "alert";
+    //resultDiv.style.display = "none";
+    panelResultDiv.style.display = "none";  
+	panelResultDiv.className = "alert";
   });
 
   editor.on('change', function(){
@@ -172,10 +176,10 @@ function runProgram(program, resultDiv, editor, callback) {
   var req = new XMLHttpRequest();
 
   //var data = "code=" + encodeURIComponent(program) + "&passargs=&respond=respond";
-  var data = "sourceCode=" + program;
+  var data = "sourceCode=" + encodeURIComponent(program);
     
   
-  req.open('POST', "https://code.peruzal.com/api/", true);
+  req.open('POST', "http://localhost:3000/api", true);
   req.onload = function(e) {
     if (req.readyState === 4 && req.status === 200) {
       var result      = JSON.parse(req.response);
@@ -188,9 +192,9 @@ function runProgram(program, resultDiv, editor, callback) {
       }
 
       callback(statusCode, resultDiv, editor, buildResult);
-    } else {
-      callback(false, null, null);
-    }
+    } //else {
+//      callback(false, null, null);
+//    }
   };
 
   req.onerror = function(e) {
@@ -214,13 +218,11 @@ function handleResult(statusCode, resultDiv, editor, message) {
 
   // Dispatch depending on result type
   if (message == null) {
-    resultDiv.style.backgroundColor = errorColor;
-	resultDiv.className = "alert alert-dismissible alert-danger";
+	 panelResultDiv.className = "alert alert-dismissible alert-danger";
     resultDiv.innerHTML = errMsg;
   } else if(message.length == 0){
-      resultDiv.style.backgroundColor = errorColor;
       resultDiv.innerHTML = "No output";
-	  	resultDiv.className = "alert alert-dismissible alert-warning";
+      panelResultDiv.className = "alert alert-dismissible alert-warning";
   } else if (statusCode == SUCCESS) {
     handleSuccess(message, resultDiv);
   } else {
@@ -230,8 +232,7 @@ function handleResult(statusCode, resultDiv, editor, message) {
 
 // Called on successful program run
 function handleSuccess(message, resultDiv) {
-  resultDiv.style.backgroundColor = successColor;
-  resultDiv.className = "alert alert-dismissible alert-success";
+  panelResultDiv.className = "alert alert-dismissible alert-success";
   var lines = message.split(newLineRegex);
   message = lines.map(function(line) {
     return escapeHTML(line);
@@ -241,8 +242,13 @@ function handleSuccess(message, resultDiv) {
 
 // Called when program run results in error(s)
 function handleError(message, editor, resultDiv) {
-  resultDiv.style.backgroundColor = errorColor;
-  handleProblem(message, editor, resultDiv, "error");
+  panelResultDiv.className = "alert alert-dismissible alert-danger";
+  var lines = message.split(newLineRegex);
+  message = lines.map(function(line) {
+    return escapeHTML(line);
+  }).join('<br />');
+  resultDiv.innerHTML = message;  
+ //handleProblem(message, editor, resultDiv, "error");
 }
 
 // Called on unsuccessful program run. Detects and prints problems (either
