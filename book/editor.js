@@ -179,7 +179,7 @@ function runProgram(program, resultDiv, editor, callback) {
   var data = "sourceCode=" + encodeURIComponent(program);
     
   
-  req.open('POST', "http://localhost:3000/api", true);
+  req.open('POST', "https://code.peruzal.co.za/api", true);
   req.onload = function(e) {
     if (req.readyState === 4 && req.status === 200) {
       var result      = JSON.parse(req.response);

@@ -3,7 +3,7 @@
     "engines": {
         "gitbook": "*"
     },
-	"version":"0.0.1",
+	"version":"0.0.3",
     "main": "index.js",
     "name": "gitbook-plugin-java-playpen",
 	"author": "Joseph Kandi"
