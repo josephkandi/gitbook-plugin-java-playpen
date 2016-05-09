@@ -177,9 +177,8 @@ function runProgram(program, resultDiv, editor, callback) {
 
   //var data = "code=" + encodeURIComponent(program) + "&passargs=&respond=respond";
   var data = "sourceCode=" + encodeURIComponent(program);
-    
-  
-  req.open('POST', "https://code.peruzal.co.za/api", true);
+      
+  req.open('POST', "https://code.peruzal.com/api", true);
   req.onload = function(e) {
     if (req.readyState === 4 && req.status === 200) {
       var result      = JSON.parse(req.response);
