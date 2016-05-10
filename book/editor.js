@@ -5,6 +5,7 @@ if (typeof String.prototype.startsWith != 'function') {
   };
 }
 
+
 // Regex for finding new lines
 var newLineRegex = /(?:\r\n|\r|\n)/g;
 
@@ -12,7 +13,6 @@ var newLineRegex = /(?:\r\n|\r|\n)/g;
 var successColor  = "#4caf50";
 var errorColor    = "#e51c23";
 var noOutputColor = "#ff9800";
-var panelResultDiv = document.querySelector("#panel-result");
 // Error message to return when there's a server failure
 var errMsg = "The server encountered an error while running the program.";
 
@@ -68,7 +68,7 @@ function initEditor(block) {
 
     // Get the code, run the program
     var program = editor.getValue();
-    runProgram(program, resultDiv, editor, handleResult);
+    runProgram(program, panelResultDiv,resultDiv, editor, handleResult);
   };
 
   ace.config.setModuleUrl('ace/mode/java', '/gitbook/plugins/gitbook-plugin-java-playpen/mode-java.js');
@@ -172,7 +172,7 @@ function escapeHTML(unsafe) {
 
 // Dispatches a XMLHttpRequest to the Rust playpen, running the program, and
 // issues a callback to `callback` with the result (or null on error)
-function runProgram(program, resultDiv, editor, callback) {
+function runProgram(program, panelResultDiv, resultDiv, editor, callback) {
   var req = new XMLHttpRequest();
 
   //var data = "code=" + encodeURIComponent(program) + "&passargs=&respond=respond";
@@ -190,7 +190,7 @@ function runProgram(program, resultDiv, editor, callback) {
         statusCode = ERROR;
       }
 
-      callback(statusCode, resultDiv, editor, buildResult);
+      callback(statusCode, panelResultDiv, resultDiv, editor, buildResult);
     } //else {
 //      callback(false, null, null);
 //    }
@@ -205,7 +205,7 @@ function runProgram(program, resultDiv, editor, callback) {
 }
 
 // The callback to runProgram
-function handleResult(statusCode, resultDiv, editor, message) {
+function handleResult(statusCode, panelResultDiv, resultDiv, editor, message) {
 
   // Check the size of the message, shorten it if
   // it's too big to be appended to the DOM.
@@ -223,14 +223,14 @@ function handleResult(statusCode, resultDiv, editor, message) {
       resultDiv.innerHTML = "No output";
       panelResultDiv.className = "alert alert-dismissible alert-warning";
   } else if (statusCode == SUCCESS) {
-    handleSuccess(message, resultDiv);
+    handleSuccess(message, panelResultDiv, resultDiv);
   } else {
-    handleError(message, editor, resultDiv);
+    handleError(message, editor, panelResultDiv, resultDiv);
   }
 }
 
 // Called on successful program run
-function handleSuccess(message, resultDiv) {
+function handleSuccess(message, panelResultDiv, resultDiv) {
   panelResultDiv.className = "alert alert-dismissible alert-success";
   var lines = message.split(newLineRegex);
   message = lines.map(function(line) {
@@ -240,7 +240,7 @@ function handleSuccess(message, resultDiv) {
 }
 
 // Called when program run results in error(s)
-function handleError(message, editor, resultDiv) {
+function handleError(message, editor, panelResultDiv, resultDiv) {
   panelResultDiv.className = "alert alert-dismissible alert-danger";
   var lines = message.split(newLineRegex);
   message = lines.map(function(line) {
